@@ -3,7 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dean Video Player Demo</title>
+    <meta name="description" content="Dean Video Player - 고급 기능을 갖춘 TypeScript 비디오 플레이어 라이브러리 데모" />
+    <meta name="keywords" content="video player, typescript, accessibility, security, responsive" />
+    <title>Dean Video Player Demo - 접근성과 보안을 갖춘 비디오 플레이어</title>
     <!-- <link rel="stylesheet" href="../dist/index.css" /> -->
     <style>
       body {
@@ -283,9 +285,13 @@
           <div class="feature-item">전체화면 모드</div>
           <div class="feature-item">진행 시간 표시</div>
           <div class="feature-item">커스터마이징 가능한 테마</div>
-          <div class="feature-item">키보드 단축키 지원</div>
+          <div class="feature-item">키보드 단축키 지원 (Space, 화살표, M, F)</div>
+          <div class="feature-item">접근성 지원 (ARIA 라벨, 스크린 리더)</div>
+          <div class="feature-item">보안 강화 (XSS 방지, CORS 정책)</div>
+          <div class="feature-item">메모리 누수 방지</div>
+          <div class="feature-item">강화된 에러 처리</div>
           <div class="feature-item">이벤트 콜백 시스템</div>
-          <div class="feature-item">TypeScript 지원</div>
+          <div class="feature-item">TypeScript 완전 지원</div>
         </div>
       </div>
 
@@ -303,13 +309,21 @@
 
 const player = new VideoPlayer({
   container: '#video-container',
-  src: 'path/to/your/video.mp4',
-  poster: 'path/to/poster.jpg',
+  src: 'https://example.com/video.mp4', // HTTPS 권장
+  poster: 'https://example.com/poster.jpg',
   width: 800,        // 픽셀 단위
   height: 450,       // 픽셀 단위
   aspectRatio: '16:9', // 화면 비율
   autoplay: false,
-  muted: false
+  muted: false,
+  events: {
+    error: (error) => {
+      console.error('플레이어 오류:', error.message);
+      // 사용자에게 친화적인 오류 메시지 표시
+    },
+    loadstart: () => console.log('비디오 로드 시작'),
+    canplay: () => console.log('재생 준비 완료')
+  }
 });</code></pre>
         </div>
 
@@ -359,16 +373,58 @@ player.setAspectRatio('21:9');      // 화면 비율 변경</code></pre>
         </div>
 
         <div class="code-example">
-          <h3>이벤트 리스너</h3>
-          <pre><code>player.on('play', () => console.log('재생 시작'));
-player.on('pause', () => console.log('일시정지'));
-player.on('timeupdate', (time) => console.log('현재 시간:', time));
-player.on('timelineclick', (time) => console.log('타임라인 클릭:', time));</code></pre>
+          <h3>이벤트 리스너 및 에러 처리</h3>
+          <pre><code>// 생성 시 이벤트 설정
+const player = new VideoPlayer({
+  container: '#video-container',
+  src: 'https://example.com/video.mp4',
+  events: {
+    play: () => console.log('재생 시작'),
+    pause: () => console.log('일시정지'),
+    timeupdate: (time) => console.log('현재 시간:', time),
+    error: (error) => {
+      // 에러 처리
+      console.error('비디오 오류:', error);
+      showUserFriendlyError('비디오를 재생할 수 없습니다.');
+    },
+    loadstart: () => console.log('로드 시작'),
+    loadedmetadata: () => console.log('메타데이터 로드 완료'),
+    canplay: () => console.log('재생 가능')
+  }
+});
+
+// 안전한 비디오 소스 변경
+try {
+  player.setSrc('https://new-video-url.mp4');
+} catch (error) {
+  console.error('소스 변경 실패:', error.message);
+}</code></pre>
+        </div>
+
+        <div class="code-example">
+          <h3>접근성 및 키보드 네비게이션</h3>
+          <pre><code>// 플레이어는 자동으로 접근성 기능을 제공합니다:
+// - ARIA 라벨 및 역할
+// - 키보드 네비게이션 (Tab, Space, 화살표 키)
+// - 스크린 리더 지원
+// - 동적 상태 업데이트
+
+// 추가 접근성 설정이 필요한 경우:
+const container = document.getElementById('video-container');
+container.setAttribute('aria-label', '메인 비디오 플레이어');
+
+// 키보드 이벤트 확장 (선택사항)
+container.addEventListener('keydown', (e) => {
+  if (e.code === 'KeyR') {
+    e.preventDefault();
+    player.setCurrentTime(0); // R키로 처음으로
+  }
+});</code></pre>
         </div>
       </div>
 
       <div class="demo-section">
-        <h2>키보드 단축키</h2>
+        <h2>키보드 단축키 및 접근성</h2>
         <div class="features-list">
           <div class="feature-item"><strong>Space</strong> - 재생/일시정지</div>
           <div class="feature-item"><strong>←</strong> - 10초 뒤로</div>
@@ -377,6 +433,25 @@ player.on('timelineclick', (time) => console.log('타임라인 클릭:', time));
           <div class="feature-item"><strong>↓</strong> - 볼륨 감소</div>
           <div class="feature-item"><strong>M</strong> - 음소거 토글</div>
           <div class="feature-item"><strong>F</strong> - 전체화면 토글</div>
+          <div class="feature-item"><strong>Home</strong> - 처음으로 이동</div>
+          <div class="feature-item"><strong>End</strong> - 끝으로 이동</div>
+          <div class="feature-item"><strong>Tab</strong> - 컨트롤 요소 간 이동</div>
+          <div class="feature-item">스크린 리더 지원 (ARIA 라벨)</div>
+          <div class="feature-item">키보드 전용 네비게이션 지원</div>
+        </div>
+      </div>
+
+      <div class="demo-section">
+        <h2>보안 및 안정성</h2>
+        <div class="features-list">
+          <div class="feature-item">비디오 소스 URL 검증 (HTTP/HTTPS만 허용)</div>
+          <div class="feature-item">XSS 공격 방지를 위한 입력 검증</div>
+          <div class="feature-item">CORS 정책 준수 (crossOrigin 설정)</div>
+          <div class="feature-item">CSP(Content Security Policy) 준수</div>
+          <div class="feature-item">메모리 누수 방지 (이벤트 리스너 정리)</div>
+          <div class="feature-item">강화된 에러 처리 및 복구</div>
+          <div class="feature-item">안전한 DOM 조작</div>
+          <div class="feature-item">입력 데이터 검증 및 정제</div>
         </div>
       </div>
     </div>
@@ -391,7 +466,7 @@ player.on('timelineclick', (time) => console.log('타임라인 클릭:', time));
 
       console.log("🎬 비디오 URL:", sampleVideoUrl);
 
-      // 기본 플레이어
+      // 기본 플레이어 (보안 및 접근성 강화)
       console.log("deanVideoPlayer:", deanVideoPlayer);
       console.log("VideoPlayer 생성 시작...");
 
@@ -399,23 +474,47 @@ player.on('timelineclick', (time) => console.log('타임라인 클릭:', time));
         container: "#player1",
         src: sampleVideoUrl,
         poster: samplePosterUrl,
+        autoplay: false,
+        muted: false,
+        events: {
+          error: (error) => {
+            console.error('Player1 오류:', error.message);
+            // 사용자에게 친화적인 오류 메시지 표시
+            const errorDiv = document.createElement('div');
+            errorDiv.style.cssText = 'padding: 10px; background: #f8d7da; color: #721c24; border-radius: 4px; margin: 10px 0;';
+            errorDiv.textContent = '비디오를 로드할 수 없습니다. 네트워크 연결을 확인해주세요.';
+            document.querySelector('#player1').appendChild(errorDiv);
+          },
+          loadstart: () => {
+            console.log('Player1 - 로드 시작');
+            console.log('비디오 URL:', sampleVideoUrl);
+          },
+          loadedmetadata: () => {
+            console.log('Player1 - 메타데이터 로드 완료');
+            console.log('비디오 길이:', player1.videoElement?.duration);
+          },
+          canplay: () => {
+            console.log('Player1 - 재생 준비 완료');
+            console.log('비디오 상태:', player1.videoElement?.readyState);
+          },
+          loadeddata: () => console.log('Player1 - 데이터 로드 완료')
+        }
         // 실시간 프레임 캡처 사용 (previewImages 없이)
       });
 
-      // 이벤트 리스너 추가 (디버깅용)
-      player1.on("loadstart", () => console.log("Player1 - 로드 시작"));
-      player1.on("loadedmetadata", () =>
-        console.log("Player1 - 메타데이터 로드 완료")
-      );
-      player1.on("loadeddata", () => console.log("Player1 - 데이터 로드 완료"));
-      player1.on("canplay", () => console.log("Player1 - 재생 가능"));
-      player1.on("previewhover", (time) =>
-        console.log("Player1 - 미리보기 호버:", time)
-      );
+      // 추가 이벤트 리스너 (디버깅 및 모니터링용)
+      // 주의: events 옵션으로 설정한 이벤트와 중복되지 않도록 주의
+      if (player1.on) {
+        player1.on("previewhover", (time) =>
+          console.log("Player1 - 미리보기 호버:", time.toFixed(1) + "초")
+        );
+        player1.on("play", () => console.log("Player1 - 재생 시작"));
+        player1.on("pause", () => console.log("Player1 - 일시정지"));
+      }
 
       console.log("Player1 생성 완료:", player1);
 
-      // 테마 커스터마이징 플레이어 (초기 크기 설정 + 정적 미리보기 이미지 혼합)
+      // 테마 커스터마이징 플레이어 (보안 강화 및 에러 처리)
       const player2 = new deanVideoPlayer.VideoPlayer({
         container: "#player2",
         src: sampleVideoUrl,
@@ -433,16 +532,45 @@ player.on('timelineclick', (time) => console.log('타임라인 클릭:', time));
           },
           // 일부 시간만 정적 이미지 사용, 나머지는 실시간 캡처
         ],
+        events: {
+          error: (error) => {
+            console.error('Player2 오류:', error.message);
+            // 에러 상태 표시
+            const player2Container = document.querySelector('#player2');
+            const errorOverlay = document.createElement('div');
+            errorOverlay.style.cssText = `
+              position: absolute;
+              top: 50%;
+              left: 50%;
+              transform: translate(-50%, -50%);
+              background: rgba(0,0,0,0.8);
+              color: white;
+              padding: 20px;
+              border-radius: 8px;
+              text-align: center;
+              z-index: 1000;
+            `;
+            errorOverlay.innerHTML = `
+              <div>⚠️ 비디오 로드 실패</div>
+              <div style="font-size: 12px; margin-top: 8px; opacity: 0.8;">네트워크 연결을 확인해주세요</div>
+            `;
+            player2Container.style.position = 'relative';
+            player2Container.appendChild(errorOverlay);
+          },
+          loadstart: () => console.log('Player2 - 로드 시작'),
+          loadedmetadata: () => console.log('Player2 - 메타데이터 로드 완료')
+        }
       });
 
-      // Player2 이벤트 리스너 추가 (디버깅용)
-      player2.on("loadstart", () => console.log("🎬 Player2 - 로드 시작"));
-      player2.on("loadedmetadata", () =>
-        console.log("📊 Player2 - 메타데이터 로드 완료")
-      );
-      player2.on("previewhover", (time) =>
-        console.log("🎯 Player2 - 미리보기 호버:", time.toFixed(1), "초")
-      );
+      // Player2 추가 이벤트 리스너
+      if (player2.on) {
+        player2.on("previewhover", (time) =>
+          console.log("🎯 Player2 - 미리보기 호버:", time.toFixed(1), "초")
+        );
+        player2.on("fullscreenchange", (isFullscreen) =>
+          console.log("📺 Player2 - 전체화면:", isFullscreen ? "활성" : "비활성")
+        );
+      }
 
       console.log("Player2 생성 완료:", player2);
 
@@ -501,12 +629,45 @@ player.on('timelineclick', (time) => console.log('타임라인 클릭:', time));
         event.target.classList.add("active");
       }
 
-      // 이벤트 리스너 예제
-      player1.on("play", () => console.log("Player 1: 재생 시작"));
-      player1.on("pause", () => console.log("Player 1: 일시정지"));
-      player1.on("previewhover", (time) =>
-        console.log("미리보기 호버:", Math.floor(time) + "초")
-      );
+      // 보안 및 접근성 테스트 함수
+      window.testSecurity = function() {
+        console.log('🔒 보안 테스트 시작');
+        
+        // 잘못된 URL 테스트
+        try {
+          player1.setSrc('javascript:alert("XSS")');
+        } catch (error) {
+          console.log('✅ XSS 방지 성공:', error.message);
+        }
+        
+        // 유효하지 않은 URL 테스트
+        try {
+          player1.setSrc('invalid-url');
+        } catch (error) {
+          console.log('✅ URL 검증 성공:', error.message);
+        }
+        
+        console.log('🔒 보안 테스트 완료');
+      };
+      
+      window.testAccessibility = function() {
+        console.log('♿ 접근성 테스트 시작');
+        
+        const container = document.querySelector('#player1');
+        const ariaLabel = container.getAttribute('aria-label');
+        const role = container.getAttribute('role');
+        const tabIndex = container.getAttribute('tabindex');
+        
+        console.log('ARIA 라벨:', ariaLabel);
+        console.log('역할:', role);
+        console.log('탭 인덱스:', tabIndex);
+        
+        // 키보드 포커스 테스트
+        container.focus();
+        console.log('포커스 설정 완료 - Tab 키로 네비게이션 테스트 가능');
+        
+        console.log('♿ 접근성 테스트 완료');
+      };
 
       // 전역 변수로 설정하여 콘솔에서 테스트 가능
       window.player1 = player1;
@@ -586,7 +747,7 @@ player.on('timelineclick', (time) => console.log('타임라인 클릭:', time));
           30초로 이동
         </button>
         <button
-          onclick="console.log('📊 Player1 상태:', player1.getState())"
+          onclick="console.log('📊 Player1 상태:', player1.getState ? player1.getState() : '상태 메서드 없음')"
           style="
             padding: 8px 12px;
             background: #6f42c1;
@@ -597,6 +758,32 @@ player.on('timelineclick', (time) => console.log('타임라인 클릭:', time));
           "
         >
           상태 확인
+        </button>
+        <button
+          onclick="testSecurity()"
+          style="
+            padding: 8px 12px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+          "
+        >
+          🔒 보안 테스트
+        </button>
+        <button
+          onclick="testAccessibility()"
+          style="
+            padding: 8px 12px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+          "
+        >
+          ♿ 접근성 테스트
         </button>
         <button
           onclick="console.log('📺 미리보기 비디오:', player1.previewVideo)"

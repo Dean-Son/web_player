@@ -10,10 +10,12 @@
     "dist"
   ],
   "scripts": {
-    "build": "rollup -c",
-    "dev": "rollup -c -w",
+    "build": "NODE_ENV=production rollup -c",
+    "build:dev": "NODE_ENV=development rollup -c",
+    "dev": "NODE_ENV=development rollup -c -w",
     "serve": "http-server demo -p 3000",
-    "start": "npm run dev & npm run serve"
+    "start": "npm run dev & npm run serve",
+    "analyze": "NODE_ENV=production ANALYZE=true rollup -c"
   },
   "keywords": [
     "video",
@@ -27,6 +29,7 @@
   "devDependencies": {
     "@rollup/plugin-commonjs": "^25.0.7",
     "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^11.1.5",
     "http-server": "^14.1.1",
     "rollup": "^4.9.6",

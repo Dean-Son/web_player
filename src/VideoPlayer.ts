@@ -30,6 +30,7 @@ export class VideoPlayer {
   private previewTooltip!: HTMLElement;
   private previewCanvas!: HTMLCanvasElement;
   private previewVideo!: HTMLVideoElement;
+  private isPreviewVideoLoading = false;
 
   private state: VideoPlayerState;
   private theme: VideoPlayerTheme;
@@ -477,17 +478,28 @@ export class VideoPlayer {
   private createPreviewVideo(): void {
     // 미리보기용 숨겨진 비디오 엘리먼트 생성
     this.previewVideo = document.createElement("video");
-    this.previewVideo.src = this.videoElement.src;
+    // 중복 로드 방지: 소스는 실제 필요할 때 설정
     this.previewVideo.style.display = "none";
     this.previewVideo.style.position = "absolute";
     this.previewVideo.style.top = "-9999px";
     this.previewVideo.muted = true;
-    this.previewVideo.preload = "metadata";
+    this.previewVideo.preload = "none"; // 자동 로드 방지
     this.previewVideo.crossOrigin = "anonymous"; // CORS 지원
     this.previewVideo.playsInline = true; // 모바일 호환성
 
-    console.log("createPreviewVideo:", this.previewVideo);
+    console.log("createPreviewVideo (소스 미설정):", this.previewVideo);
     document.body.appendChild(this.previewVideo);
+    
+    // 로드 완료 플래그 추가
+    this.previewVideo.addEventListener("loadeddata", () => {
+      console.log("미리보기 비디오 완전 로드 완료");
+      this.isPreviewVideoLoading = false;
+    });
+
+    this.previewVideo.addEventListener("loadstart", () => {
+      console.log("미리보기 비디오 로드 시작");
+      this.isPreviewVideoLoading = true;
+    });
 
     // 메타데이터 로드 완료 시 로그
     this.previewVideo.addEventListener("loadedmetadata", () => {
@@ -788,6 +800,17 @@ export class VideoPlayer {
         previewVideoSrc: this.previewVideo?.src,
         mainVideoReady: this.videoElement?.readyState,
       });
+
+      // 미리보기 비디오 소스가 없거나 다르면 설정 (로딩 중이 아닐 때만)
+      if ((!this.previewVideo.src || this.previewVideo.src !== this.videoElement.src) && !this.isPreviewVideoLoading) {
+        console.log("미리보기 비디오 소스 설정 중...");
+        this.previewVideo.src = this.videoElement.src;
+        this.previewVideo.load();
+      } else if (this.previewVideo.readyState >= 1) {
+        console.log("미리보기 비디오 이미 로드됨, 재사용");
+      } else if (this.isPreviewVideoLoading) {
+        console.log("미리보기 비디오 로딩 중... 대기");
+      }
 
       // 비디오가 로드되지 않았으면 대기
       if (this.previewVideo.readyState < 1) {

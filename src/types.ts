@@ -1,6 +1,6 @@
 export interface VideoPlayerOptions {
   container: HTMLElement | string;
-  src: string;
+  src?: string;
   poster?: string;
   autoplay?: boolean;
   muted?: boolean;
@@ -11,6 +11,7 @@ export interface VideoPlayerOptions {
   width?: string | number;
   height?: string | number;
   aspectRatio?: string; // e.g., "16:9", "4:3", "21:9"
+  events?: Partial<VideoPlayerEvents>;
 }
 
 export interface VideoPlayerTheme {
@@ -51,4 +52,8 @@ export interface VideoPlayerEvents {
   ratechange: (rate: PlaybackRate) => void;
   fullscreenchange: (isFullscreen: boolean) => void;
   previewhover: (time: number) => void;
+  error: (error: Error) => void;
+  loadstart: () => void;
+  loadedmetadata: () => void;
+  canplay: () => void;
 }
