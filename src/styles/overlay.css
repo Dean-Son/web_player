@@ -1,0 +1,39 @@
+/* 오버레이 및 플레이 버튼 스타일 */
+.dean-video-player .controls-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.dean-video-player:hover .controls-overlay {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.dean-video-player .play-button-overlay {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--player-controls-background, rgba(0, 0, 0, 0.7));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--player-text-color, #fff);
+  font-size: 32px;
+  transition: all 0.3s ease;
+}
+
+.dean-video-player .play-button-overlay:hover {
+  background: var(--player-primary-color, #007bff);
+  transform: scale(1.1);
+}

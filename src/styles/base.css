@@ -1,0 +1,45 @@
+/* 기본 컨테이너 스타일 */
+.dean-video-player {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background-color: var(--player-background-color, #000);
+  border-radius: 8px;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  user-select: none;
+}
+
+.dean-video-player.custom-size {
+  width: var(--player-width);
+  height: var(--player-height);
+  aspect-ratio: unset;
+}
+
+.dean-video-player video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background-color: var(--player-background-color, #000);
+}
+
+.dean-video-player.fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+  border-radius: 0;
+}
+
+.dean-video-player.paused .controls-overlay {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.dean-video-player.paused .controls {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}

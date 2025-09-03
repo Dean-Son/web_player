@@ -30,7 +30,8 @@ export default {
       tsconfig: "./tsconfig.json",
     }),
     postcss({
-      extract: true,
+      extract: false, // CSS를 JavaScript에 인라인으로 포함
+      inject: true, // 런타임에 CSS를 자동 주입
       minimize: true,
     }),
   ],

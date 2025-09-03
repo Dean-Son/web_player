@@ -1,0 +1,36 @@
+/* 진행바 스타일 */
+.dean-video-player .progress-container {
+  margin-bottom: 12px;
+}
+
+.dean-video-player .progress-bar {
+  width: 100%;
+  height: 6px;
+  background: var(--player-progress-background-color, rgba(255, 255, 255, 0.3));
+  border-radius: 3px;
+  position: relative;
+  cursor: pointer;
+}
+
+.dean-video-player .progress-fill {
+  height: 100%;
+  background: var(--player-progress-color, #007bff);
+  border-radius: 3px;
+  transition: width 0.1s ease;
+}
+
+.dean-video-player .progress-handle {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 16px;
+  height: 16px;
+  background: var(--player-progress-color, #007bff);
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.dean-video-player .progress-bar:hover .progress-handle {
+  opacity: 1;
+}
