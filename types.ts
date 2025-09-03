@@ -51,4 +51,9 @@ export interface VideoPlayerEvents {
   ratechange: (rate: PlaybackRate) => void;
   fullscreenchange: (isFullscreen: boolean) => void;
   previewhover: (time: number) => void;
+  error: (error: Error) => void;
+  loadstart: () => void;
+  loadedmetadata: () => void;
+  canplay: () => void;
+  ended: () => void;
 }
