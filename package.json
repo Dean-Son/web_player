@@ -1,0 +1,59 @@
+{
+  "name": "dean-video-player",
+  "version": "1.0.0",
+  "description": "A customizable video player library with advanced controls",
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/dean-video-player.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-username/dean-video-player/issues"
+  },
+  "homepage": "https://github.com/your-username/dean-video-player#readme",
+  "scripts": {
+    "build": "npm run clean && rollup -c && npm run copy-to-demo",
+    "build:watch": "rollup -c -w",
+    "dev": "npm run build:watch & npm run serve",
+    "serve": "http-server demo -p 3000 -o",
+    "serve-standalone": "echo '🎬 설치형 라이브러리 완성! demo/index.html 또는 demo/test-simple.html을 더블클릭하세요. JavaScript 파일 하나로 CSS도 자동 포함!'",
+    "start": "npm run dev",
+    "clean": "rm -rf dist demo/dist .tsbuildinfo",
+    "copy-to-demo": "node scripts/copy-to-demo.cjs",
+    "type-check": "tsc --noEmit",
+    "lint": "echo \"Linting not configured yet\"",
+    "test": "echo \"Tests not configured yet\"",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "video",
+    "player",
+    "html5",
+    "media",
+    "streaming",
+    "typescript",
+    "accessible",
+    "responsive",
+    "preview",
+    "modern"
+  ],
+  "author": "dean",
+  "license": "MIT",
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^25.0.7",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-typescript": "^11.1.5",
+    "http-server": "^14.1.1",
+    "rollup": "^4.9.6",
+    "rollup-plugin-postcss": "^4.0.2",
+    "tslib": "^2.8.1",
+    "typescript": "^5.3.3"
+  }
+}

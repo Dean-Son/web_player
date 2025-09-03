@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VideoPlayer 테스트</title>
+    <!-- CSS는 JavaScript에 포함되어 자동 주입됩니다 -->
+  </head>
+  <body>
+    <h1>VideoPlayer 로드 테스트</h1>
+    <div
+      id="test-player"
+      style="
+        width: 640px;
+        height: 360px;
+        border: 1px solid #ccc;
+        margin: 20px 0;
+      "
+    ></div>
+
+    <!-- 스크립트 로드 (단독 HTML 파일용) -->
+    <script src="./dist/index.umd.js"></script>
+    <script>
+      console.log("🎬 스크립트 로드 완료");
+      console.log("deanVideoPlayer 객체:", window.deanVideoPlayer);
+
+      if (window.deanVideoPlayer && window.deanVideoPlayer.VideoPlayer) {
+        console.log("✅ VideoPlayer 클래스 발견");
+
+        // 간단한 테스트 비디오로 플레이어 생성
+        try {
+          const player = new window.deanVideoPlayer.VideoPlayer({
+            container: "#test-player",
+            src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+            poster:
+              "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/BigBuckBunny.jpg",
+          });
+
+          console.log("✅ VideoPlayer 생성 성공:", player);
+
+          // 이벤트 리스너 추가
+          player.on("loadstart", () => console.log("🔄 비디오 로드 시작"));
+          player.on("loadedmetadata", () =>
+            console.log("📊 메타데이터 로드 완료")
+          );
+          player.on("canplay", () => console.log("✅ 재생 준비 완료"));
+          player.on("error", (error) =>
+            console.error("❌ 플레이어 에러:", error)
+          );
+        } catch (error) {
+          console.error("❌ VideoPlayer 생성 실패:", error);
+          document.getElementById("test-player").innerHTML = `
+                    <div style="padding: 20px; background: #ffe6e6; border: 1px solid #ff0000; border-radius: 4px;">
+                        <h3 style="color: #ff0000; margin: 0 0 10px 0;">VideoPlayer 생성 실패</h3>
+                        <p style="margin: 0; font-family: monospace; font-size: 12px;">${error.message}</p>
+                    </div>
+                `;
+        }
+      } else {
+        console.error("❌ VideoPlayer 클래스를 찾을 수 없습니다");
+        document.getElementById("test-player").innerHTML = `
+                <div style="padding: 20px; background: #fff3cd; border: 1px solid #856404; border-radius: 4px;">
+                    <h3 style="color: #856404; margin: 0 0 10px 0;">스크립트 로드 실패</h3>
+                    <p style="margin: 0;">deanVideoPlayer.VideoPlayer가 정의되지 않았습니다.</p>
+                </div>
+            `;
+      }
+    </script>
+  </body>
+</html>
