@@ -10,7 +10,7 @@ import {
   VideoPlayerState,
   VideoPlayerTheme,
 } from "./types";
-import { formatTime } from "./utils";
+import { formatTime, rafThrottle } from "./utils";
 import { VideoPlayerControls } from "./VideoPlayerControls";
 import { UIElements, VideoPlayerUI } from "./VideoPlayerUI";
 
@@ -30,6 +30,14 @@ export class VideoPlayer {
 
   // Container reference
   private container: HTMLElement;
+
+  // Performance optimizations
+  private cachedElements: {
+    currentTimeElement?: Element | null;
+    totalTimeElement?: Element | null;
+    playOverlaySpan?: Element | null;
+  } = {};
+  private throttledUpdateUI: (...args: any[]) => void;
 
   constructor(options: VideoPlayerOptions) {
     // Validate container
@@ -82,6 +90,10 @@ export class VideoPlayer {
     this.preview.setupPreviewEvents();
     this.themeManager.applyTheme();
 
+    // Setup performance optimizations
+    this.throttledUpdateUI = rafThrottle(() => this.updateUI());
+    this.cacheElements();
+
     // Setup state synchronization
     this.setupStateSync();
 
@@ -122,15 +134,22 @@ export class VideoPlayer {
     this.elements.videoElement.playbackRate = this.state.playbackRate;
   }
 
+  private cacheElements(): void {
+    // Cache frequently accessed DOM elements
+    this.cachedElements.currentTimeElement = this.elements.timeDisplay.querySelector(".current-time");
+    this.cachedElements.totalTimeElement = this.elements.timeDisplay.querySelector(".total-time");
+    this.cachedElements.playOverlaySpan = this.elements.playButtonOverlay.querySelector("span");
+  }
+
   private setupStateSync(): void {
-    // Listen to state changes and update UI
-    this.eventManager.on("play", () => this.updateUI());
-    this.eventManager.on("pause", () => this.updateUI());
-    this.eventManager.on("timeupdate", () => this.updateUI());
-    this.eventManager.on("durationchange", () => this.updateUI());
-    this.eventManager.on("volumechange", () => this.updateUI());
-    this.eventManager.on("ratechange", () => this.updateUI());
-    this.eventManager.on("fullscreenchange", () => this.updateUI());
+    // Listen to state changes and update UI with throttling
+    this.eventManager.on("play", () => this.throttledUpdateUI());
+    this.eventManager.on("pause", () => this.throttledUpdateUI());
+    this.eventManager.on("timeupdate", () => this.throttledUpdateUI());
+    this.eventManager.on("durationchange", () => this.throttledUpdateUI());
+    this.eventManager.on("volumechange", () => this.throttledUpdateUI());
+    this.eventManager.on("ratechange", () => this.throttledUpdateUI());
+    this.eventManager.on("fullscreenchange", () => this.throttledUpdateUI());
   }
 
   private updateUI(): void {
@@ -146,10 +165,9 @@ export class VideoPlayer {
       this.state.isPlaying ? "일시정지" : "재생"
     );
 
-    const playOverlaySpan =
-      this.elements.playButtonOverlay.querySelector("span");
-    if (playOverlaySpan) {
-      playOverlaySpan.textContent = playText;
+    // Use cached element for better performance
+    if (this.cachedElements.playOverlaySpan) {
+      this.cachedElements.playOverlaySpan.textContent = playText;
     }
 
     // Update progress bar with ARIA values
@@ -157,29 +175,27 @@ export class VideoPlayer {
       this.state.duration > 0
         ? (this.state.currentTime / this.state.duration) * 100
         : 0;
+    const progressPercentRounded = Math.round(progressPercent);
+    
+    // Batch DOM updates to minimize reflow
     this.elements.progressFill.style.width = `${progressPercent}%`;
     this.elements.progressHandle.style.left = `${progressPercent}%`;
     this.elements.progressBar.setAttribute(
       "aria-valuenow",
-      Math.round(progressPercent).toString()
+      progressPercentRounded.toString()
     );
     this.elements.progressBar.setAttribute(
       "aria-valuetext",
-      `${Math.round(progressPercent)}% 완료`
+      `${progressPercentRounded}% 완료`
     );
 
-    // Update time display with ARIA
-    const currentTimeElement =
-      this.elements.timeDisplay.querySelector(".current-time");
-    const totalTimeElement =
-      this.elements.timeDisplay.querySelector(".total-time");
-
-    if (currentTimeElement && totalTimeElement) {
+    // Update time display with cached elements
+    if (this.cachedElements.currentTimeElement && this.cachedElements.totalTimeElement) {
       const currentTimeText = formatTime(this.state.currentTime);
       const totalTimeText = formatTime(this.state.duration);
 
-      currentTimeElement.textContent = currentTimeText;
-      totalTimeElement.textContent = totalTimeText;
+      this.cachedElements.currentTimeElement.textContent = currentTimeText;
+      this.cachedElements.totalTimeElement.textContent = totalTimeText;
 
       this.elements.timeDisplay.setAttribute(
         "aria-label",
@@ -229,9 +245,9 @@ export class VideoPlayer {
       "aria-label",
       this.state.isFullscreen ? "전체화면 해제" : "전체화면"
     );
+    
+    // Batch class updates
     this.container.classList.toggle("fullscreen", this.state.isFullscreen);
-
-    // Update paused state for controls visibility
     this.container.classList.toggle("paused", !this.state.isPlaying);
   }
 
@@ -308,6 +324,11 @@ export class VideoPlayer {
   }
 
   public destroy(): void {
+    // Cancel any pending RAF updates
+    if (this.throttledUpdateUI && (this.throttledUpdateUI as any).cancel) {
+      (this.throttledUpdateUI as any).cancel();
+    }
+
     // Stop video
     this.elements.videoElement.pause();
 
@@ -316,6 +337,9 @@ export class VideoPlayer {
     this.preview.destroy();
     this.ui.destroy();
     this.eventManager.removeAllListeners();
+
+    // Clear cached elements
+    this.cachedElements = {};
 
     // Clear container
     this.container.innerHTML = "";

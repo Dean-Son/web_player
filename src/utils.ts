@@ -111,7 +111,7 @@ export class EventListenerManager {
     target: EventTarget;
     type: string;
     listener: EventListener;
-    options?: boolean | AddEventListenerOptions;
+    options: boolean | AddEventListenerOptions | undefined;
   }> = [];
 
   add(
@@ -221,6 +221,62 @@ export function manageFocus(element: HTMLElement): {
       }
     },
   };
+}
+
+// 타이머 통합 관리 클래스 (메모리 누수 방지)
+export class TimerManager {
+  private timers: Set<number> = new Set();
+  private intervals: Set<number> = new Set();
+  private rafs: Set<number> = new Set();
+
+  setTimeout(callback: () => void, delay: number): number {
+    const id = window.setTimeout(() => {
+      this.timers.delete(id);
+      callback();
+    }, delay);
+    this.timers.add(id);
+    return id;
+  }
+
+  setInterval(callback: () => void, delay: number): number {
+    const id = window.setInterval(callback, delay);
+    this.intervals.add(id);
+    return id;
+  }
+
+  requestAnimationFrame(callback: () => void): number {
+    const id = window.requestAnimationFrame(() => {
+      this.rafs.delete(id);
+      callback();
+    });
+    this.rafs.add(id);
+    return id;
+  }
+
+  clearTimeout(id: number): void {
+    window.clearTimeout(id);
+    this.timers.delete(id);
+  }
+
+  clearInterval(id: number): void {
+    window.clearInterval(id);
+    this.intervals.delete(id);
+  }
+
+  cancelAnimationFrame(id: number): void {
+    window.cancelAnimationFrame(id);
+    this.rafs.delete(id);
+  }
+
+  clearAll(): void {
+    this.timers.forEach(id => window.clearTimeout(id));
+    this.intervals.forEach(id => window.clearInterval(id));
+    this.rafs.forEach(id => window.cancelAnimationFrame(id));
+    
+    this.timers.clear();
+    this.intervals.clear();
+    this.rafs.clear();
+  }
 }
 
 // 성능 모니터링 유틸리티
