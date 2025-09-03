@@ -1,0 +1,24 @@
+---
+description: Node.js 버전 관리 및 환경 설정
+ruleType: always
+---
+
+# Node.js 버전 관리
+
+이 프로젝트는 **Node.js 18.20.0** 버전을 사용합니다.
+
+## 환경 설정 요구사항
+
+- 프로젝트 루트에 `.nvmrc` 파일이 있으며, 이를 통해 Node.js 버전을 관리합니다
+- `nvm use` 명령어로 올바른 Node.js 버전을 활성화해야 합니다
+- 패키지 매니저로 `pnpm`을 사용합니다
+
+## 개발 환경 준비
+
+```bash
+nvm use                    # .nvmrc 파일의 버전 사용
+pnpm install              # 의존성 설치
+pnpm run start:dev        # 개발 서버 실행
+```
+
+코드 작성 시 Node.js 18.20.0 환경에서 테스트된 기능만을 사용하고, 최신 ECMAScript 기능을 적절히 활용하세요.

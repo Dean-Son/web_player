@@ -1,0 +1,167 @@
+---
+description: 데이터베이스 엔티티 및 쿼리 작성 가이드라인
+ruleType: auto_attached
+globs: ['src/entities/**/*.ts', 'src/modules/**/repositories/**/*.ts']
+---
+
+# 데이터베이스 및 Entity 규칙
+
+## Entity 정의 규칙
+
+### 기본 Entity 구조
+
+```typescript
+@Entity('users')
+export class User {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column({ length: 100 })
+  name: string;
+
+  @Column({ unique: true })
+  email: string;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+
+  @DeleteDateColumn()
+  deletedAt: Date;
+}
+```
+
+### 관계 정의
+
+```typescript
+// One-to-Many
+@Entity('posts')
+export class Post {
+  @ManyToOne(() => User, (user) => user.posts)
+  @JoinColumn({ name: 'user_id' })
+  user: User;
+
+  @Column({ name: 'user_id' })
+  userId: number;
+}
+
+// Many-to-Many
+@Entity('users')
+export class User {
+  @ManyToMany(() => Role)
+  @JoinTable({
+    name: 'user_roles',
+    joinColumn: { name: 'user_id' },
+    inverseJoinColumn: { name: 'role_id' },
+  })
+  roles: Role[];
+}
+```
+
+## Repository 패턴
+
+### 커스텀 Repository 사용
+
+```typescript
+@Injectable()
+export class UserRepository extends Repository<User> {
+  constructor(
+    @InjectDataSource()
+    private dataSource: DataSource,
+  ) {
+    super(User, dataSource.createEntityManager());
+  }
+
+  async findByEmail(email: string): Promise<User | null> {
+    return this.findOne({ where: { email } });
+  }
+
+  async findActiveUsers(): Promise<User[]> {
+    return this.find({
+      where: { deletedAt: IsNull() },
+      order: { createdAt: 'DESC' },
+    });
+  }
+}
+```
+
+## 쿼리 최적화
+
+### N+1 문제 방지
+
+```typescript
+// Bad: N+1 쿼리 발생
+const users = await userRepository.find();
+for (const user of users) {
+  const posts = await postRepository.find({ where: { userId: user.id } });
+}
+
+// Good: Join으로 한 번에 로드
+const users = await userRepository.find({
+  relations: ['posts'],
+  where: { deletedAt: IsNull() },
+});
+```
+
+### 페이지네이션 구현
+
+```typescript
+async findUsersWithPagination(page: number, limit: number) {
+  const [users, total] = await this.findAndCount({
+    skip: (page - 1) * limit,
+    take: limit,
+    order: { createdAt: 'DESC' }
+  });
+
+  return {
+    data: users,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit)
+    }
+  };
+}
+```
+
+## 데이터 검증
+
+### Entity 레벨 검증
+
+```typescript
+@Entity('users')
+export class User {
+  @Column({ length: 100 })
+  @IsNotEmpty()
+  @Length(2, 100)
+  name: string;
+
+  @Column()
+  @IsEmail()
+  email: string;
+
+  @Column({ type: 'enum', enum: UserStatus })
+  status: UserStatus;
+}
+```
+
+### 트랜잭션 사용
+
+```typescript
+@Injectable()
+export class UserService {
+  async createUserWithProfile(userData: CreateUserDto) {
+    return this.dataSource.transaction(async (manager) => {
+      const user = await manager.save(User, userData);
+      const profile = await manager.save(UserProfile, {
+        userId: user.id,
+        ...userData.profile,
+      });
+      return { user, profile };
+    });
+  }
+}
+```

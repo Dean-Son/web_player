@@ -1,0 +1,115 @@
+---
+description: 프로젝트 전반에 적용되는 일반적인 개발 규칙 및 베스트 프랙티스
+ruleType: always
+---
+
+# 일반 개발 규칙
+
+## 코드 품질 원칙
+
+### SOLID 원칙 준수
+
+- **S**ingle Responsibility: 하나의 클래스는 하나의 책임만
+- **O**pen/Closed: 확장에는 열려있고 수정에는 닫혀있게
+- **L**iskov Substitution: 상위 타입의 객체를 하위 타입으로 교체 가능하게
+- **I**nterface Segregation: 클라이언트가 사용하지 않는 인터페이스에 의존하지 않게
+- **D**ependency Inversion: 고수준 모듈은 저수준 모듈에 의존하지 않게
+
+### Clean Code 원칙
+
+- **의미 있는 이름 사용**: 변수, 함수, 클래스명은 의도를 명확히
+- **함수는 작게**: 하나의 일만 수행하도록
+- **주석보다는 코드로 설명**: 코드 자체가 문서가 되도록
+- **일관된 코딩 스타일**: ESLint, Prettier 규칙 준수
+
+## 보안 가이드라인
+
+### 입력 검증
+
+- 모든 외부 입력은 검증 후 사용
+- SQL Injection, XSS 등 공격 방어
+- 적절한 권한 검사
+
+### 민감 정보 관리
+
+- 환경변수로 민감한 설정 관리
+- 패스워드는 반드시 해시화
+- API 키, DB 연결 정보 등은 `.env` 파일 사용
+
+## 성능 최적화
+
+### 메모리 관리
+
+- 불필요한 객체 생성 최소화
+- 메모리 누수 방지
+- 적절한 캐싱 전략 사용
+
+### 데이터베이스 최적화
+
+- 인덱스 적절히 활용
+- N+1 쿼리 문제 방지
+- 페이지네이션 구현
+
+## 테스트 작성 원칙
+
+### 테스트 종류
+
+- **Unit Test**: 개별 함수/메서드 테스트
+- **Integration Test**: 모듈 간 상호작용 테스트
+- **E2E Test**: 전체 시스템 통합 테스트
+
+### 테스트 작성 규칙
+
+```typescript
+describe('UserService', () => {
+  describe('createUser', () => {
+    it('should create user successfully', async () => {
+      // Given
+      const userData = { name: 'John', email: 'john@example.com' };
+
+      // When
+      const result = await userService.createUser(userData);
+
+      // Then
+      expect(result).toBeDefined();
+      expect(result.email).toBe(userData.email);
+    });
+  });
+});
+```
+
+## 에러 처리 및 로깅
+
+### 에러 처리
+
+- 적절한 HTTP 상태 코드 사용
+- 사용자 친화적인 에러 메시지
+- 스택 트레이스는 개발 환경에서만 노출
+
+### 로깅 전략
+
+- 중요한 비즈니스 로직은 로그 남기기
+- 민감한 정보는 로그에 포함하지 않기
+- 적절한 로그 레벨 사용 (DEBUG, INFO, WARN, ERROR)
+
+## Git 컨벤션
+
+### 커밋 메시지
+
+```
+type(scope): subject
+
+body
+
+footer
+```
+
+### 타입별 예시
+
+- `feat`: 새로운 기능 추가
+- `fix`: 버그 수정
+- `docs`: 문서 수정
+- `style`: 코드 포맷팅
+- `refactor`: 코드 리팩토링
+- `test`: 테스트 코드
+- `chore`: 빌드 업무 수정

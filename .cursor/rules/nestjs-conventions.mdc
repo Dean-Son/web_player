@@ -1,0 +1,50 @@
+---
+description: NestJS 프로젝트 코딩 컨벤션 및 아키텍처 가이드라인
+ruleType: always
+---
+
+# NestJS 코딩 컨벤션
+
+이 프로젝트는 NestJS 프레임워크를 사용하며, 다음 컨벤션을 따릅니다.
+
+## 파일 명명 규칙
+
+- **Controller**: `*.controller.ts` (예: `user.controller.ts`)
+- **Service**: `*.service.ts` (예: `user.service.ts`)
+- **Module**: `*.module.ts` (예: `user.module.ts`)
+- **Entity**: `*.entity.ts` (예: `user.entity.ts`)
+- **DTO**: `*.dto.ts` (예: `create-user.dto.ts`)
+- **Guard**: `*.guard.ts` (예: `auth.guard.ts`)
+- **Interceptor**: `*.interceptor.ts`
+- **Middleware**: `*.middleware.ts`
+
+## 디렉토리 구조
+
+```
+src/
+├── modules/v1/           # API v1 모듈들
+├── common/              # 공통 유틸리티
+├── entities/            # 데이터베이스 엔티티
+├── configs/             # 설정 파일들
+└── router/              # 라우팅 설정
+```
+
+## 코딩 스타일
+
+- **클래스명**: PascalCase (예: `UserController`)
+- **메서드명**: camelCase (예: `getUserById`)
+- **상수**: UPPER_SNAKE_CASE (예: `MAX_RETRY_COUNT`)
+- **파라미터**: camelCase with 타입 명시
+
+## 예외 처리
+
+- 비즈니스 로직 오류는 커스텀 예외 클래스 사용
+- HTTP 상태 코드에 맞는 적절한 예외 던지기
+- 에러 응답 형식 통일
+
+## 데코레이터 사용
+
+- `@Injectable()`: 서비스 클래스
+- `@Controller()`: 컨트롤러 클래스
+- `@Get()`, `@Post()` 등: HTTP 메서드
+- `@Body()`, `@Param()`, `@Query()`: 요청 데이터
