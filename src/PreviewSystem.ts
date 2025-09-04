@@ -7,8 +7,8 @@ export class PreviewSystem {
   private elements: UIElements;
   private eventManager: EventManager;
   private previewImages: PreviewImage[];
-  private generatePreview?: (time: number) => string;
-  private previewVideo!: HTMLVideoElement;
+  private generatePreview: ((time: number) => string) | undefined;
+  // previewVideo 제거 - 메인 비디오에서 직접 캡처
   private isGeneratingPreview: boolean = false;
   private cleanupTasks: (() => void)[] = [];
 
@@ -25,10 +25,22 @@ export class PreviewSystem {
   }
 
   public setupPreviewEvents(): void {
+    // progress-container에서 이벤트를 처리하여 더 넓은 영역에서 호버 감지
+    const progressContainer = this.elements.progressBar.parentElement;
+    if (!progressContainer) {
+      console.warn("Progress container not found");
+      return;
+    }
+
     const handleProgressHover = (e: MouseEvent) => {
       const rect = this.elements.progressBar.getBoundingClientRect();
-      const percent = (e.clientX - rect.left) / rect.width;
+      const percent = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
       const time = percent * this.getDuration();
+
+      // 유효한 시간인지 확인
+      if (isNaN(time) || time < 0) {
+        return;
+      }
 
       this.showPreview(e.clientX - rect.left, time);
       this.eventManager.emit("previewhover", time);
@@ -42,89 +54,39 @@ export class PreviewSystem {
       this.elements.previewTooltip.classList.remove("visible");
     };
 
-    this.elements.progressBar.addEventListener(
-      "mousemove",
-      handleProgressHover
-    );
+    // progress-container와 progress-bar 모두에 이벤트 등록
+    progressContainer.addEventListener("mousemove", handleProgressHover);
+    progressContainer.addEventListener("mouseenter", mouseEnterHandler);
+    progressContainer.addEventListener("mouseleave", mouseLeaveHandler);
+    
+    this.elements.progressBar.addEventListener("mousemove", handleProgressHover);
     this.elements.progressBar.addEventListener("mouseenter", mouseEnterHandler);
     this.elements.progressBar.addEventListener("mouseleave", mouseLeaveHandler);
 
     this.addCleanupTask(() => {
-      this.elements.progressBar.removeEventListener(
-        "mousemove",
-        handleProgressHover
-      );
-      this.elements.progressBar.removeEventListener(
-        "mouseenter",
-        mouseEnterHandler
-      );
-      this.elements.progressBar.removeEventListener(
-        "mouseleave",
-        mouseLeaveHandler
-      );
+      progressContainer.removeEventListener("mousemove", handleProgressHover);
+      progressContainer.removeEventListener("mouseenter", mouseEnterHandler);
+      progressContainer.removeEventListener("mouseleave", mouseLeaveHandler);
+      
+      this.elements.progressBar.removeEventListener("mousemove", handleProgressHover);
+      this.elements.progressBar.removeEventListener("mouseenter", mouseEnterHandler);
+      this.elements.progressBar.removeEventListener("mouseleave", mouseLeaveHandler);
     });
   }
 
   public createPreviewVideo(videoSrc: string): void {
     try {
       if (!videoSrc) {
-        throw new Error("Video source is required");
+        console.log("미리보기 시스템: 메인 비디오에서 직접 캡처 모드로 동작");
+        return;
       }
 
-      // 기존 미리보기 비디오가 있다면 정리
-      if (this.previewVideo) {
-        this.destroyPreviewVideo();
-      }
-
-      // 미리보기용 숨겨진 비디오 엘리먼트 생성
-      this.previewVideo = document.createElement("video");
-      this.previewVideo.src = videoSrc;
-      this.previewVideo.style.display = "none";
-      this.previewVideo.style.position = "absolute";
-      this.previewVideo.style.top = "-9999px";
-      this.previewVideo.style.left = "-9999px";
-      this.previewVideo.style.visibility = "hidden";
-      this.previewVideo.style.pointerEvents = "none";
-      this.previewVideo.muted = true;
-      this.previewVideo.preload = "metadata";
-      this.previewVideo.crossOrigin = "anonymous";
-      this.previewVideo.playsInline = true;
-      this.previewVideo.controls = false;
-
-      document.body.appendChild(this.previewVideo);
-
-      // 메타데이터 로드 완료 이벤트
-      const loadedHandler = () => {
-        console.log("previewVideo 메타데이터 로드 완료:", {
-          duration: this.previewVideo.duration,
-          videoWidth: this.previewVideo.videoWidth,
-          videoHeight: this.previewVideo.videoHeight,
-          readyState: this.previewVideo.readyState,
-        });
-      };
-
-      this.previewVideo.addEventListener("loadedmetadata", loadedHandler);
-
-      // 에러 핸들러
-      const errorHandler = (event: Event) => {
-        console.error("미리보기 비디오 에러:", event);
-        this.eventManager.emit("error", new Error("미리보기 비디오 로드 실패"));
-      };
-
-      this.previewVideo.addEventListener("error", errorHandler);
-
-      this.addCleanupTask(() => {
-        if (this.previewVideo) {
-          this.previewVideo.removeEventListener(
-            "loadedmetadata",
-            loadedHandler
-          );
-          this.previewVideo.removeEventListener("error", errorHandler);
-          this.destroyPreviewVideo();
-        }
-      });
+      // 새로운 방식: 메인 비디오에서 직접 캡처
+      // 별도의 previewVideo 생성하지 않음
+      console.log("미리보기 시스템 초기화 완료 - 메인 비디오 직접 캡처 방식");
+      
     } catch (error) {
-      console.error("미리보기 비디오 생성 실패:", error);
+      console.error("미리보기 시스템 초기화 실패:", error);
       this.eventManager.emit(
         "error",
         error instanceof Error ? error : new Error(String(error))
@@ -132,23 +94,7 @@ export class PreviewSystem {
     }
   }
 
-  private destroyPreviewVideo(): void {
-    try {
-      if (this.previewVideo) {
-        // 재생 중단
-        this.previewVideo.pause();
-        this.previewVideo.src = "";
-        this.previewVideo.load(); // 메모리 해제
-
-        // DOM에서 제거
-        if (this.previewVideo.parentNode) {
-          this.previewVideo.parentNode.removeChild(this.previewVideo);
-        }
-      }
-    } catch (error) {
-      console.warn("미리보기 비디오 제거 중 에러:", error);
-    }
-  }
+  // 더 이상 사용하지 않는 메서드 (메인 비디오에서 직접 캡처하므로)
 
   private showPreview(position: number, time: number): void {
     try {
@@ -205,8 +151,8 @@ export class PreviewSystem {
         imageElement.src = staticPreview;
         imageElement.style.display = "block";
         this.elements.previewCanvas.style.display = "none";
-      } else if (this.previewVideo) {
-        // 실시간 프레임 캡처
+      } else {
+        // 메인 비디오에서 실시간 프레임 캡처
         await this.captureVideoFrame(time);
         imageElement.style.display = "none";
         this.elements.previewCanvas.style.display = "block";
@@ -227,106 +173,111 @@ export class PreviewSystem {
   private async captureVideoFrame(time: number): Promise<void> {
     return new Promise((resolve, reject) => {
       try {
-        if (!this.previewVideo) {
-          reject(new Error("Preview video not available"));
+        // 메인 비디오에서 직접 캡처하는 새로운 방식
+        const mainVideo = this.elements.videoElement;
+        
+        if (!mainVideo || !this.elements.previewCanvas) {
+          reject(new Error("Video or canvas not available"));
           return;
         }
 
-        if (!this.elements.previewCanvas) {
-          reject(new Error("Preview canvas not available"));
-          return;
-        }
-
-        // 비디오가 로드되지 않았으면 대기
-        if (this.previewVideo.readyState < 1) {
+        // 메인 비디오가 로드되지 않았으면 대기
+        if (mainVideo.readyState < 2) {
           const timeoutId = setTimeout(() => {
-            reject(new Error("Preview video metadata loading timeout"));
-          }, 5000);
+            reject(new Error("Main video loading timeout"));
+          }, 2000);
 
-          const onLoadedMetadata = () => {
+          const onCanPlay = () => {
             clearTimeout(timeoutId);
-            this.previewVideo.removeEventListener(
-              "loadedmetadata",
-              onLoadedMetadata
-            );
+            mainVideo.removeEventListener("canplay", onCanPlay);
             this.captureVideoFrame(time).then(resolve).catch(reject);
           };
 
-          this.previewVideo.addEventListener(
-            "loadedmetadata",
-            onLoadedMetadata
-          );
+          mainVideo.addEventListener("canplay", onCanPlay);
           return;
         }
+
+        // 현재 재생 상태 저장
+        const originalTime = mainVideo.currentTime;
+        const wasPlaying = !mainVideo.paused;
+        
+        // 즉시 프레임 캡처 시도 (seek 없이)
+        if (Math.abs(originalTime - time) < 0.5) {
+          // 현재 시간과 요청 시간이 0.5초 이내면 즉시 캡처
+          this.drawCurrentFrame(mainVideo);
+          resolve();
+          return;
+        }
+
+        // seek이 필요한 경우
+        const onTimeUpdate = () => {
+          try {
+            if (Math.abs(mainVideo.currentTime - time) < 0.1) {
+              // 목표 시간에 도달
+              this.drawCurrentFrame(mainVideo);
+              
+              // 원래 상태로 복원
+              mainVideo.currentTime = originalTime;
+              if (wasPlaying) {
+                mainVideo.play().catch(() => {});
+              }
+              
+              mainVideo.removeEventListener("timeupdate", onTimeUpdate);
+              resolve();
+            }
+          } catch (error) {
+            mainVideo.removeEventListener("timeupdate", onTimeUpdate);
+            reject(error);
+          }
+        };
+
+        // 타임아웃 설정 (1초)
+        const timeout = setTimeout(() => {
+          mainVideo.removeEventListener("timeupdate", onTimeUpdate);
+          // 타임아웃 시에도 현재 프레임 캡처 시도
+          try {
+            this.drawCurrentFrame(mainVideo);
+            resolve();
+          } catch (error) {
+            reject(new Error("Frame capture timeout"));
+          }
+        }, 1000);
+
+        mainVideo.addEventListener("timeupdate", () => {
+          clearTimeout(timeout);
+          onTimeUpdate();
+        });
+
+        // 일시정지 후 시간 이동
+        mainVideo.pause();
+        mainVideo.currentTime = time;
+        
       } catch (error) {
         reject(error);
-        return;
       }
-
-      // 현재 재생 상태 저장
-      const originalTime = this.elements.videoElement.currentTime;
-
-      // seeked 이벤트 리스너 설정
-      const onSeeked = () => {
-        try {
-          // Canvas에 현재 프레임 그리기
-          const ctx = this.elements.previewCanvas.getContext("2d");
-          if (
-            ctx &&
-            this.previewVideo.videoWidth > 0 &&
-            this.previewVideo.videoHeight > 0
-          ) {
-            ctx.drawImage(this.previewVideo, 0, 0, 160, 90);
-          }
-
-          // 원래 상태로 복원
-          this.previewVideo.currentTime = originalTime;
-          this.previewVideo.removeEventListener("seeked", onSeeked);
-          resolve();
-        } catch (error) {
-          console.error("Canvas 그리기 실패:", error);
-          this.previewVideo.removeEventListener("seeked", onSeeked);
-          reject(error);
-        }
-      };
-
-      // 에러 핸들러
-      const onError = (errorEvent: Event) => {
-        console.error("previewVideo 에러:", errorEvent);
-        this.previewVideo.removeEventListener("seeked", onSeeked);
-        this.previewVideo.removeEventListener("error", onError);
-        reject(new Error("비디오 seek 실패"));
-      };
-
-      // 타임아웃 핸들러 (3초 후 포기)
-      const timeout = setTimeout(() => {
-        console.warn("프레임 캡처 타임아웃");
-        this.previewVideo.removeEventListener("seeked", onSeeked);
-        this.previewVideo.removeEventListener("error", onError);
-        reject(new Error("프레임 캡처 타임아웃"));
-      }, 3000);
-
-      this.previewVideo.addEventListener(
-        "seeked",
-        () => {
-          clearTimeout(timeout);
-          onSeeked();
-        },
-        { once: true }
-      );
-
-      this.previewVideo.addEventListener(
-        "error",
-        (e) => {
-          clearTimeout(timeout);
-          onError(e);
-        },
-        { once: true }
-      );
-
-      // 해당 시간으로 이동
-      this.previewVideo.currentTime = time;
     });
+  }
+
+  private drawCurrentFrame(video: HTMLVideoElement): void {
+    try {
+      const ctx = this.elements.previewCanvas.getContext("2d");
+      if (ctx && video.videoWidth > 0 && video.videoHeight > 0) {
+        // Canvas 크기 설정
+        const canvas = this.elements.previewCanvas;
+        canvas.width = 160;
+        canvas.height = 90;
+        
+        // 비디오 프레임을 캔버스에 그리기
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        // 이미지 품질 향상
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+      }
+    } catch (error) {
+      console.warn("Frame drawing failed:", error);
+    }
   }
 
   private findPreviewImage(time: number): string | null {

@@ -142,9 +142,9 @@ export class VideoPlayer {
   }
 
   private setupStateSync(): void {
-    // Listen to state changes and update UI with throttling
-    this.eventManager.on("play", () => this.throttledUpdateUI());
-    this.eventManager.on("pause", () => this.throttledUpdateUI());
+    // Listen to state changes - immediate update for play/pause, throttled for others
+    this.eventManager.on("play", () => this.updatePlayButtonUI());
+    this.eventManager.on("pause", () => this.updatePlayButtonUI());
     this.eventManager.on("timeupdate", () => this.throttledUpdateUI());
     this.eventManager.on("durationchange", () => this.throttledUpdateUI());
     this.eventManager.on("volumechange", () => this.throttledUpdateUI());
@@ -152,8 +152,8 @@ export class VideoPlayer {
     this.eventManager.on("fullscreenchange", () => this.throttledUpdateUI());
   }
 
-  private updateUI(): void {
-    // Update play button and ARIA states
+  private updatePlayButtonUI(): void {
+    // 즉시 재생/일시정지 버튼 업데이트 (throttling 없음)
     const playText = this.state.isPlaying ? "⏸" : "▶";
     this.elements.playButton.textContent = playText;
     this.elements.playButton.setAttribute(
@@ -169,6 +169,14 @@ export class VideoPlayer {
     if (this.cachedElements.playOverlaySpan) {
       this.cachedElements.playOverlaySpan.textContent = playText;
     }
+    
+    // 컨테이너 클래스도 즉시 업데이트
+    this.container.classList.toggle("paused", !this.state.isPlaying);
+  }
+
+  private updateUI(): void {
+    // 재생 버튼 업데이트
+    this.updatePlayButtonUI();
 
     // Update progress bar with ARIA values
     const progressPercent =
@@ -248,7 +256,6 @@ export class VideoPlayer {
     
     // Batch class updates
     this.container.classList.toggle("fullscreen", this.state.isFullscreen);
-    this.container.classList.toggle("paused", !this.state.isPlaying);
   }
 
   // Public API methods

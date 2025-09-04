@@ -124,13 +124,19 @@ export class VideoPlayerControls {
     });
 
     const playHandler = () => {
-      this.state.isPlaying = true;
-      this.eventManager.emit("play");
+      // 상태가 이미 업데이트되었는지 확인하여 중복 방지
+      if (!this.state.isPlaying) {
+        this.state.isPlaying = true;
+        this.eventManager.emit("play");
+      }
     };
 
     const pauseHandler = () => {
-      this.state.isPlaying = false;
-      this.eventManager.emit("pause");
+      // 상태가 이미 업데이트되었는지 확인하여 중복 방지
+      if (this.state.isPlaying) {
+        this.state.isPlaying = false;
+        this.eventManager.emit("pause");
+      }
     };
 
     video.addEventListener("play", playHandler);
@@ -448,10 +454,18 @@ export class VideoPlayerControls {
         console.warn("Video not ready, attempting to play anyway");
       }
 
+      // 상태를 즉시 업데이트하여 UI 반영
+      this.state.isPlaying = true;
+      this.eventManager.emit("play");
+
       await this.elements.videoElement.play();
       console.log("재생 성공");
     } catch (error) {
       console.error("재생 실패:", error);
+      
+      // 재생 실패 시 상태 되돌리기
+      this.state.isPlaying = false;
+      this.eventManager.emit("pause");
 
       // 브라우저별 에러 메시지 처리
       let errorMessage = "재생 실패";
@@ -475,6 +489,10 @@ export class VideoPlayerControls {
   }
 
   public pause(): void {
+    // 상태를 즉시 업데이트하여 UI 반영
+    this.state.isPlaying = false;
+    this.eventManager.emit("pause");
+    
     this.elements.videoElement.pause();
   }
 

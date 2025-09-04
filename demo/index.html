@@ -210,62 +210,37 @@
       </div>
 
       <div class="demo-section">
-        <h2>테마 및 크기 커스터마이징</h2>
+        <h2>🧪 자동 테스트 시나리오</h2>
+        <p style="color: #666; margin-bottom: 20px">
+          이 플레이어는 자동으로 다양한 기능을 테스트합니다. 콘솔을 열어서
+          테스트 진행 상황을 확인하세요.
+        </p>
         <div class="player-container">
           <div id="player2"></div>
         </div>
 
         <div class="controls-demo">
           <div class="control-group">
-            <h3>테마 선택</h3>
-            <div class="theme-selector">
-              <div
-                class="theme-option active"
-                style="background: linear-gradient(45deg, #007bff, #0056b3)"
-                onclick="changeTheme('default')"
-              ></div>
-              <div
-                class="theme-option"
-                style="background: linear-gradient(45deg, #dc3545, #c82333)"
-                onclick="changeTheme('red')"
-              ></div>
-              <div
-                class="theme-option"
-                style="background: linear-gradient(45deg, #28a745, #1e7e34)"
-                onclick="changeTheme('green')"
-              ></div>
-              <div
-                class="theme-option"
-                style="background: linear-gradient(45deg, #ffc107, #e0a800)"
-                onclick="changeTheme('yellow')"
-              ></div>
-              <div
-                class="theme-option"
-                style="background: linear-gradient(45deg, #6f42c1, #59359a)"
-                onclick="changeTheme('purple')"
-              ></div>
-              <div
-                class="theme-option"
-                style="background: linear-gradient(45deg, #333, #000)"
-                onclick="changeTheme('dark')"
-              ></div>
+            <h3>테스트 컨트롤</h3>
+            <button onclick="startAutoTest()">🚀 자동 테스트 시작</button>
+            <button onclick="stopAutoTest()">⏹️ 테스트 중지</button>
+            <button onclick="resetAutoTest()">🔄 테스트 리셋</button>
+          </div>
+
+          <div class="control-group">
+            <h3>테스트 상태</h3>
+            <div
+              id="testStatus"
+              style="
+                padding: 10px;
+                background: #f8f9fa;
+                border-radius: 4px;
+                font-family: monospace;
+                font-size: 12px;
+              "
+            >
+              테스트 대기 중...
             </div>
-          </div>
-
-          <div class="control-group">
-            <h3>크기 조절</h3>
-            <button onclick="player2.setSize('400px', '225px')">400x225</button>
-            <button onclick="player2.setSize('600px', '338px')">600x338</button>
-            <button onclick="player2.setSize('800px', '450px')">800x450</button>
-            <button onclick="player2.setSize()">기본 크기</button>
-          </div>
-
-          <div class="control-group">
-            <h3>화면 비율</h3>
-            <button onclick="player2.setAspectRatio('16:9')">16:9</button>
-            <button onclick="player2.setAspectRatio('4:3')">4:3</button>
-            <button onclick="player2.setAspectRatio('21:9')">21:9</button>
-            <button onclick="player2.setAspectRatio('1:1')">1:1</button>
           </div>
         </div>
       </div>
@@ -519,6 +494,83 @@ player.on('timelineclick', (time) => console.log('타임라인 클릭:', time));
       console.log("🎬 비디오 URL:", sampleVideoUrl);
 
       // 기본 플레이어
+      console.log('Dean Video Player 라이브러리 로드 완료');
+      
+      // 디버깅: 버튼 상태 변경 테스트 함수 추가
+      window.testButtonChange = function() {
+        const player1Button = document.querySelector('#player1 .play-button');
+        const player2Button = document.querySelector('#player2 .play-button');
+        
+        console.log('Player1 버튼:', player1Button);
+        console.log('Player2 버튼:', player2Button);
+        
+        if (player1Button) {
+          console.log('Player1 버튼 현재 텍스트:', player1Button.textContent);
+          player1Button.textContent = player1Button.textContent === '▶' ? '⏸' : '▶';
+          console.log('Player1 버튼 변경 후 텍스트:', player1Button.textContent);
+        }
+        
+        if (player2Button) {
+          console.log('Player2 버튼 현재 텍스트:', player2Button.textContent);
+          player2Button.textContent = player2Button.textContent === '▶' ? '⏸' : '▶';
+          console.log('Player2 버튼 변경 후 텍스트:', player2Button.textContent);
+        }
+      };
+      
+      // 플레이어 상태 및 메서드 테스트 함수
+      window.testPlayerState = function() {
+        console.log('=== Player1 상태 ===');
+        if (player1) {
+          console.log('Player1 객체:', player1);
+          console.log('Player1 상태:', player1.getState());
+          console.log('Player1 play 메서드:', typeof player1.play);
+          console.log('Player1 pause 메서드:', typeof player1.pause);
+        }
+        
+        console.log('=== Player2 상태 ===');
+        if (player2) {
+          console.log('Player2 객체:', player2);
+          console.log('Player2 상태:', player2.getState());
+          console.log('Player2 play 메서드:', typeof player2.play);
+          console.log('Player2 pause 메서드:', typeof player2.pause);
+        }
+      };
+      
+      // 직접 재생/일시정지 테스트
+      window.testDirectPlayPause = function() {
+        if (player1) {
+          const currentState = player1.getState();
+          console.log('Player1 현재 상태:', currentState);
+          
+          if (currentState.isPlaying) {
+            console.log('Player1 일시정지 실행...');
+            player1.pause();
+          } else {
+            console.log('Player1 재생 실행...');
+            player1.play();
+          }
+          
+          setTimeout(() => {
+            console.log('Player1 변경 후 상태:', player1.getState());
+          }, 100);
+        }
+      };
+      
+      // EventManager 디버깅 함수
+      window.debugEventManager = function() {
+        if (player1 && player1.eventManager) {
+          console.log('=== EventManager 디버깅 ===');
+          console.log('등록된 이벤트들:', player1.eventManager.getAllEvents());
+          
+          ['play', 'pause', 'timeupdate', 'previewhover'].forEach(event => {
+            const count = player1.eventManager.getListenerCount(event);
+            console.log(`${event} 리스너 수:`, count);
+          });
+        } else {
+          console.log('EventManager에 접근할 수 없습니다.');
+        }
+      };
+
       console.log("deanVideoPlayer:", deanVideoPlayer);
       console.log("VideoPlayer 클래스:", deanVideoPlayer.VideoPlayer);
             console.log("VideoPlayer 생성 시작...");
@@ -529,6 +581,10 @@ player.on('timelineclick', (time) => console.log('타임라인 클릭:', time));
           container: "#player1",
           src: sampleVideoUrl,
           poster: samplePosterUrl,
+          autoplay: false,
+          muted: true,
+          width: 800,
+          height: 450
           // 실시간 프레임 캡처 사용 (previewImages 없이)
         });
 
@@ -590,29 +646,24 @@ player.on('timelineclick', (time) => console.log('타임라인 클릭:', time));
         console.log("Player1 생성 완료:", player1);
       } // player1 이벤트 리스너 블록 끝
 
-                  // 테마 커스터마이징 플레이어 (초기 크기 설정 + 정적 미리보기 이미지 혼합)
+      // 🧪 자동 테스트 플레이어
       let player2;
+      let autoTestInterval;
+      let testStep = 0;
+      let isTestRunning = false;
+
       try {
         player2 = new deanVideoPlayer.VideoPlayer({
           container: "#player2",
           src: sampleVideoUrl,
           poster: samplePosterUrl,
-          width: 500,
-          height: 281,
-              previewImages: [
-                {
-                  time: 0,
-                  url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/BigBuckBunny.jpg",
-                },
-                {
-                  time: 120,
-                  url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/BigBuckBunny.jpg",
-                },
-                // 일부 시간만 정적 이미지 사용, 나머지는 실시간 캡처
-                      ],
-      });
+          autoplay: false,
+          muted: true,
+          width: 600,
+          height: 338
+        });
 
-        console.log("✅ Player2 생성 성공:", player2);
+        console.log("✅ Player2 (자동 테스트용) 생성 성공:", player2);
       } catch (error) {
         console.error("❌ Player2 생성 실패:", error);
         document.getElementById('player2').innerHTML = `
@@ -624,20 +675,278 @@ player.on('timelineclick', (time) => console.log('타임라인 클릭:', time));
         `;
       }
 
+      // 🧪 자동 테스트 시나리오 함수들
+      function updateTestStatus(message, isError = false) {
+        const statusDiv = document.getElementById('testStatus');
+        if (statusDiv) {
+          statusDiv.textContent = message;
+          statusDiv.style.background = isError ? '#ffe6e6' : '#e6f3ff';
+          statusDiv.style.color = isError ? '#d32f2f' : '#1976d2';
+        }
+        console.log(`🧪 [테스트] ${message}`);
+      }
+
+      // 시각적 피드백 함수들
+      function highlightControl(selector, duration = 2000) {
+        const element = document.querySelector(selector);
+        if (element) {
+          element.style.cssText += `
+            animation: pulse-highlight 0.5s ease-in-out 3;
+            box-shadow: 0 0 20px #00ff88 !important;
+            border: 2px solid #00ff88 !important;
+          `;
+          setTimeout(() => {
+            element.style.animation = '';
+            element.style.boxShadow = '';
+            element.style.border = '';
+          }, duration);
+        }
+      }
+
+      function showVisualNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        const colors = {
+          info: { bg: 'rgba(0, 123, 255, 0.9)', border: '#007bff' },
+          success: { bg: 'rgba(40, 167, 69, 0.9)', border: '#28a745' },
+          warning: { bg: 'rgba(255, 193, 7, 0.9)', border: '#ffc107' },
+          action: { bg: 'rgba(255, 87, 34, 0.9)', border: '#ff5722' }
+        };
+        const color = colors[type] || colors.info;
+        
+        notification.style.cssText = `
+          position: fixed; top: 20px; right: 20px; z-index: 10000;
+          background: ${color.bg}; color: white; padding: 12px 20px;
+          border-radius: 8px; border-left: 4px solid ${color.border};
+          font-size: 14px; font-weight: 500; max-width: 300px;
+          animation: slideInRight 0.3s ease-out;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        `;
+        notification.textContent = message;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+          notification.style.animation = 'slideOutRight 0.3s ease-in';
+          setTimeout(() => notification.remove(), 300);
+        }, 2500);
+      }
+
+      function updatePlayerVisualState(action, value) {
+        const player2Container = document.querySelector('#player2');
+        if (!player2Container) return;
+        
+        // 플레이어 주변에 액션 표시
+        const actionIndicator = document.createElement('div');
+        actionIndicator.style.cssText = `
+          position: absolute; top: -40px; left: 50%; transform: translateX(-50%);
+          background: rgba(0, 0, 0, 0.8); color: #00ff88; padding: 8px 16px;
+          border-radius: 20px; font-size: 12px; font-weight: bold;
+          z-index: 1000; animation: fadeInOut 2s ease-in-out;
+        `;
+        actionIndicator.textContent = `${action}: ${value}`;
+        
+        const container = player2Container.parentElement;
+        container.style.position = 'relative';
+        container.appendChild(actionIndicator);
+        
+        setTimeout(() => actionIndicator.remove(), 2000);
+      }
+
+      function startAutoTest() {
+        if (!player2 || isTestRunning) {
+          updateTestStatus('테스트를 시작할 수 없습니다.', true);
+          return;
+        }
+
+        isTestRunning = true;
+        testStep = 0;
+        updateTestStatus('자동 테스트 시작...');
+        showVisualNotification('🚀 자동 테스트가 시작됩니다!', 'info');
+
+        const testScenarios = [
+          { 
+            name: '재생 시작', 
+            action: () => {
+              player2.play();
+              highlightControl('#player2 .play-pause-btn');
+              updatePlayerVisualState('재생', '시작');
+              showVisualNotification('▶️ 비디오 재생 시작', 'action');
+            }, 
+            delay: 3000 
+          },
+          { 
+            name: '2배속 설정', 
+            action: () => {
+              player2.setPlaybackRate(2);
+              updatePlayerVisualState('재생속도', '2x');
+              showVisualNotification('⚡ 2배속으로 변경', 'action');
+            }, 
+            delay: 3000 
+          },
+          { 
+            name: '30초 이동', 
+            action: () => {
+              player2.setCurrentTime(30);
+              highlightControl('#player2 .progress-bar');
+              updatePlayerVisualState('시간 이동', '30초');
+              showVisualNotification('⏭️ 30초 지점으로 이동', 'action');
+            }, 
+            delay: 3000 
+          },
+          { 
+            name: '볼륨 50%', 
+            action: () => {
+              player2.setVolume(0.5);
+              highlightControl('#player2 .volume-btn');
+              updatePlayerVisualState('볼륨', '50%');
+              showVisualNotification('🔉 볼륨 50%로 조정', 'action');
+            }, 
+            delay: 2000 
+          },
+          { 
+            name: '일시정지', 
+            action: () => {
+              player2.pause();
+              highlightControl('#player2 .play-pause-btn');
+              updatePlayerVisualState('재생', '일시정지');
+              showVisualNotification('⏸️ 비디오 일시정지', 'action');
+            }, 
+            delay: 2000 
+          },
+          { 
+            name: '10초 뒤로', 
+            action: () => {
+              player2.seek(-10);
+              highlightControl('#player2 .progress-bar');
+              updatePlayerVisualState('시간 이동', '-10초');
+              showVisualNotification('⏪ 10초 뒤로 이동', 'action');
+            }, 
+            delay: 2000 
+          },
+          { 
+            name: '1배속 복원', 
+            action: () => {
+              player2.setPlaybackRate(1);
+              updatePlayerVisualState('재생속도', '1x');
+              showVisualNotification('🔄 재생속도 정상으로 복원', 'action');
+            }, 
+            delay: 2000 
+          },
+          { 
+            name: '재생 재개', 
+            action: () => {
+              player2.play();
+              highlightControl('#player2 .play-pause-btn');
+              updatePlayerVisualState('재생', '재개');
+              showVisualNotification('▶️ 재생 재개', 'action');
+            }, 
+            delay: 3000 
+          },
+          { 
+            name: '처음으로 이동', 
+            action: () => {
+              player2.setCurrentTime(0);
+              highlightControl('#player2 .progress-bar');
+              updatePlayerVisualState('시간 이동', '처음');
+              showVisualNotification('⏮️ 처음으로 이동', 'action');
+            }, 
+            delay: 2000 
+          },
+          { 
+            name: '테스트 완료', 
+            action: () => { 
+              isTestRunning = false; 
+              updateTestStatus('✅ 모든 테스트 완료!');
+              showVisualNotification('🎉 자동 테스트가 완료되었습니다!', 'success');
+              // 플레이어 전체에 성공 효과
+              const player2Container = document.querySelector('#player2');
+              if (player2Container) {
+                player2Container.style.cssText += 'animation: success-glow 1s ease-in-out 2;';
+                setTimeout(() => {
+                  player2Container.style.animation = '';
+                }, 2000);
+              }
+            }, 
+            delay: 0 
+          }
+        ];
+
+        function runNextTest() {
+          if (testStep >= testScenarios.length || !isTestRunning) {
+            return;
+          }
+
+          const scenario = testScenarios[testStep];
+          updateTestStatus(`${testStep + 1}/${testScenarios.length}: ${scenario.name}`);
+
+          try {
+            scenario.action();
+            testStep++;
+
+            if (scenario.delay > 0 && isTestRunning) {
+              setTimeout(runNextTest, scenario.delay);
+            } else {
+              runNextTest();
+            }
+          } catch (error) {
+            updateTestStatus(`❌ 테스트 실패: ${scenario.name} - ${error.message}`, true);
+            isTestRunning = false;
+          }
+        }
+
+        runNextTest();
+      }
+
+      function stopAutoTest() {
+        isTestRunning = false;
+        if (autoTestInterval) {
+          clearInterval(autoTestInterval);
+        }
+        updateTestStatus('테스트가 중지되었습니다.');
+      }
+
+      function resetAutoTest() {
+        stopAutoTest();
+        testStep = 0;
+        if (player2) {
+          try {
+            player2.pause();
+            player2.setCurrentTime(0);
+            player2.setPlaybackRate(1);
+            player2.setVolume(1);
+            updateTestStatus('테스트가 리셋되었습니다.');
+          } catch (error) {
+            updateTestStatus('리셋 중 오류 발생', true);
+          }
+        }
+      }
+
+      // 전역 함수로 등록
+      window.startAutoTest = startAutoTest;
+      window.stopAutoTest = stopAutoTest;
+      window.resetAutoTest = resetAutoTest;
+
       // 🎨 Player2 이벤트 리스너 (생성 성공 시에만)
       if (player2) {
         player2.on("loadstart", () => console.log("🎬 Player2 - 로드 시작"));
-        player2.on("loadedmetadata", () =>
-          console.log("📊 Player2 - 메타데이터 로드 완료")
-        );
-        player2.on("previewhover", (time) =>
-          console.log("🎯 Player2 - 미리보기 호버:", time.toFixed(1), "초")
-        );
+        player2.on("loadedmetadata", () => {
+          console.log("📊 Player2 - 메타데이터 로드 완료");
+          updateTestStatus('플레이어 준비 완료. 테스트를 시작할 수 있습니다.');
+        });
+        player2.on("play", () => console.log("▶️ Player2 - 재생 시작"));
+        player2.on("pause", () => console.log("⏸️ Player2 - 일시정지"));
+        player2.on("ratechange", (rate) => console.log(`⚡ Player2 - 속도 변경: ${rate}x`));
+        player2.on("volumechange", (volume) => console.log(`🔊 Player2 - 볼륨 변경: ${Math.round(volume * 100)}%`));
+        player2.on("timeupdate", (time) => {
+          if (isTestRunning && Math.floor(time) % 5 === 0 && Math.floor(time) !== Math.floor(time - 0.1)) {
+            console.log(`⏰ Player2 - 현재 시간: ${Math.floor(time)}초`);
+          }
+        });
         player2.on("error", (error) => {
           console.error("❌ Player2 - 에러:", error.message);
+          updateTestStatus(`에러 발생: ${error.message}`, true);
         });
 
-        console.log("Player2 생성 완료:", player2);
+        console.log("Player2 (자동 테스트용) 생성 완료:", player2);
       }
 
             // 테마 변경 함수
@@ -905,7 +1214,7 @@ player.on('timelineclick', (time) => console.log('타임라인 클릭:', time));
           // 즉시 제거
           setTimeout(() => {
             tempPlayer.destroy();
-            console.log(\`🗑️ 플레이어 \${i + 1} 제거 완료\`);
+            console.log(`🗑️ 플레이어 ${i + 1} 제거 완료`);
           }, i * 100);
         }
 
@@ -957,17 +1266,17 @@ player.on('timelineclick', (time) => console.log('타임라인 클릭:', time));
             'button, [tabindex]:not([tabindex="-1"])'
           );
 
-          console.log(\`🎯 포커스 가능한 요소 수: \${focusableElements.length}\`);
+          console.log(`🎯 포커스 가능한 요소 수: ${focusableElements.length}`);
 
           focusableElements.forEach((el, index) => {
             const ariaLabel = el.getAttribute('aria-label');
             const role = el.getAttribute('role');
-            console.log(\`  \${index + 1}. \${el.tagName} - 라벨: "\${ariaLabel}" - 역할: "\${role}"\`);
+            console.log(`  ${index + 1}. ${el.tagName} - 라벨: "${ariaLabel}" - 역할: "${role}"`);
           });
 
           // 첫 번째 요소에 포커스
           if (focusableElements.length > 0) {
-            (focusableElements[0] as HTMLElement).focus();
+            focusableElements[0].focus();
             console.log('✅ 첫 번째 컨트롤에 포커스 설정됨');
           }
         }
@@ -980,7 +1289,7 @@ player.on('timelineclick', (time) => console.log('타임라인 클릭:', time));
 
         // 동적 테마 생성
         const dynamicTheme = {
-          primaryColor: \`hsl(\${Math.floor(Math.random() * 360)}, 70%, 50%)\`,
+          primaryColor: `hsl(${Math.floor(Math.random() * 360)}, 70%, 50%)`,
           backgroundColor: '#1a1a1a',
           textColor: '#ffffff'
         };
@@ -999,7 +1308,7 @@ player.on('timelineclick', (time) => console.log('타임라인 클릭:', time));
         const sizeInterval = setInterval(() => {
           const size = sizes[sizeIndex % sizes.length];
           player2.setSize(size.width, size.height);
-          console.log(\`📐 크기 변경: \${size.width}x\${size.height}\`);
+          console.log(`📐 크기 변경: ${size.width}x${size.height}`);
           sizeIndex++;
 
           if (sizeIndex >= sizes.length) {
@@ -1019,7 +1328,7 @@ player.on('timelineclick', (time) => console.log('타임라인 클릭:', time));
         testEvents.forEach(eventType => {
           player1.on(eventType, () => {
             eventCount++;
-            console.log(\`📡 이벤트 수신: \${eventType} (총 \${eventCount}개)\`);
+            console.log(`📡 이벤트 수신: ${eventType} (총 ${eventCount}개)`);
           });
         });
 
@@ -1076,25 +1385,51 @@ player.on('timelineclick', (time) => console.log('타임라인 클릭:', time));
         console.log('✅ 플레이어 정보 표시 완료');
       };
 
-      // 🎨 CSS 변수 업데이트 (색각 이상 지원)
+      // 🎨 CSS 변수 업데이트 (색각 이상 지원) + 애니메이션 추가
       const style = document.createElement('style');
-      style.textContent = \`
+      style.textContent = `
         .colorblind-protanopia {
           --player-primary-color: #0077be !important;
           --player-progress-color: #0077be !important;
           --player-hover-color: #005a8b !important;
         }
         .colorblind-deuteranopia {
-          --player-primary-color: #0066cc !important;
-          --player-progress-color: #0066cc !important;
-          --player-hover-color: #004d99 !important;
+          --player-primary-color: #ff6600 !important;
+          --player-progress-color: #ff6600 !important;
+          --player-hover-color: #cc5200 !important;
         }
         .colorblind-tritanopia {
           --player-primary-color: #cc0066 !important;
           --player-progress-color: #cc0066 !important;
           --player-hover-color: #990044 !important;
         }
-      \`;
+        
+        /* 자동 테스트 애니메이션 */
+        @keyframes pulse-highlight {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.05); }
+        }
+        
+        @keyframes slideInRight {
+          from { transform: translateX(100%); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes slideOutRight {
+          from { transform: translateX(0); opacity: 1; }
+          to { transform: translateX(100%); opacity: 0; }
+        }
+        
+        @keyframes fadeInOut {
+          0%, 100% { opacity: 0; transform: translateX(-50%) translateY(10px); }
+          20%, 80% { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+        
+        @keyframes success-glow {
+          0%, 100% { box-shadow: 0 0 0 rgba(40, 167, 69, 0); }
+          50% { box-shadow: 0 0 30px rgba(40, 167, 69, 0.8); }
+        }
+      `;
       document.head.appendChild(style);
     </script>
 
